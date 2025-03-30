@@ -129,33 +129,33 @@
             <form class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label">Status</label>
-                    <select class="form-select">
-                        <option selected>All Statuses</option>
-                        <option>Pending</option>
-                        <option>In Progress</option>
-                        <option>Completed</option>
+                    <select class="form-select" name="status">
+                        <option value="">All Statuses</option>
+                        {% for value, name in status_choices %}
+                        <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Assigned To</label>
-                    <select class="form-select">
-                        <option selected>All Users</option>
+                    <select class="form-select" name="assigned_to">
+                        <option value="">All Users</option>
                         {% for user in users %}
-                        <option>{{ user.username }}</option>
+                        <option value="{{ user.id }}" {% if request.GET.assigned_to == user.id|stringformat:"s" %}selected{% endif %}>{{ user.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Due Date</label>
-                    <input type="date" class="form-control">
+                    <input type="date" class="form-control" name="due_date" value="{{ request.GET.due_date }}">
                 </div>
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-outline-primary me-2">
                         <i class="fas fa-filter me-2"></i>Filter
                     </button>
-                    <button type="reset" class="btn btn-outline-secondary">
+                    <a href="{% url 'managetasks' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-sync-alt me-2"></i>Reset
-                    </button>
+                    </a>
                 </div>
             </form>
         </div>
@@ -172,7 +172,7 @@
                             <th>Assigned To</th>
                             <th>Due Date</th>
                             <th>Status</th>
-                            <th>Priority</th>
+                            <th>Rating</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -210,19 +210,23 @@
                                 </span>
                             </td>
                             <td>
+                                {% if task.rating %}
                                 <span class="badge 
-                                    {% if task.priority == 'high' %}bg-danger
-                                    {% elif task.priority == 'medium' %}bg-warning
-                                    {% else %}bg-secondary{% endif %}">
-                                    {{ task.get_priority_display }}
+                                    {% if task.rating >= 4 %}bg-success
+                                    {% elif task.rating >= 2 %}bg-warning
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ task.rating }}/5
                                 </span>
+                                {% else %}
+                                <span class="badge bg-secondary">Not rated</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
                                     <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="{% url 'delete_task' task.id %}" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <a href="" class="btn btn-sm btn-outline-danger" title="Delete">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
                                     <a href="#" class="btn btn-sm btn-outline-secondary" title="View Details">
@@ -252,12 +256,12 @@
                 <ul class="pagination justify-content-center">
                     {% if tasks.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page=1" aria-label="First">
+                        <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.assigned_to %}&assigned_to={{ request.GET.assigned_to }}{% endif %}{% if request.GET.due_date %}&due_date={{ request.GET.due_date }}{% endif %}" aria-label="First">
                             <span aria-hidden="true">&laquo;&laquo;</span>
                         </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ tasks.previous_page_number }}" aria-label="Previous">
+                        <a class="page-link" href="?page={{ tasks.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.assigned_to %}&assigned_to={{ request.GET.assigned_to }}{% endif %}{% if request.GET.due_date %}&due_date={{ request.GET.due_date }}{% endif %}" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </li>
@@ -267,18 +271,18 @@
                     {% if tasks.number == num %}
                     <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
                     {% else %}
-                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.assigned_to %}&assigned_to={{ request.GET.assigned_to }}{% endif %}{% if request.GET.due_date %}&due_date={{ request.GET.due_date }}{% endif %}">{{ num }}</a></li>
                     {% endif %}
                     {% endfor %}
 
                     {% if tasks.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ tasks.next_page_number }}" aria-label="Next">
+                        <a class="page-link" href="?page={{ tasks.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.assigned_to %}&assigned_to={{ request.GET.assigned_to }}{% endif %}{% if request.GET.due_date %}&due_date={{ request.GET.due_date }}{% endif %}" aria-label="Next">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </li>
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ tasks.paginator.num_pages }}" aria-label="Last">
+                        <a class="page-link" href="?page={{ tasks.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.assigned_to %}&assigned_to={{ request.GET.assigned_to }}{% endif %}{% if request.GET.due_date %}&due_date={{ request.GET.due_date }}{% endif %}" aria-label="Last">
                             <span aria-hidden="true">&raquo;&raquo;</span>
                         </a>
                     </li>

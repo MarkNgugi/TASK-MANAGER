@@ -112,9 +112,30 @@ def user_dashboard(request):
     }
     return render(request, 'myapp/user_dashboard.html', context)
 
+@login_required
 def manage_tasks(request):
-    context={}
-    return render(request,'myapp/manage_tasks.html',context)
+    tasks = Task.objects.all().order_by('-created_at')
+    users = CustomUser.objects.all()
+    
+    # Filtering
+    status_filter = request.GET.get('status')
+    if status_filter:
+        tasks = tasks.filter(status=status_filter)
+    
+    assigned_to_filter = request.GET.get('assigned_to')
+    if assigned_to_filter:
+        tasks = tasks.filter(assigned_to__id=assigned_to_filter)
+    
+    due_date_filter = request.GET.get('due_date')
+    if due_date_filter:
+        tasks = tasks.filter(due_date__date=due_date_filter)
+    
+    context = {
+        'tasks': tasks,
+        'users': users,
+        'status_choices': Task.STATUS_CHOICES
+    }
+    return render(request, 'myapp/manage_tasks.html', context)
 
 
 @login_required
@@ -137,8 +158,11 @@ def create_task(request):
         if form.is_valid():
             task = form.save(commit=False)
             task.created_by = request.user
+            # Only set rating if the user is admin and provided a rating
+            if not request.user.is_admin or not form.cleaned_data.get('rating'):
+                task.rating = None
             task.save()
-            return redirect('task_list')
+            return redirect('managetasks')
     else:
         form = TaskForm(user=request.user)
     
@@ -152,8 +176,11 @@ def edit_task(request, pk):
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task, user=request.user)
         if form.is_valid():
+            # Only update rating if the user is admin and provided a rating
+            if not request.user.is_admin or not form.cleaned_data.get('rating'):
+                form.instance.rating = task.rating  # Keep existing rating
             form.save()
-            return redirect('task_list')
+            return redirect('managetasks')
     else:
         form = TaskForm(instance=task, user=request.user)
     
