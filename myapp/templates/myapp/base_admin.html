@@ -17,7 +17,7 @@
             <div class="sidebar-header">
                 <div class="logo-container">
                     <i class="fas fa-tasks logo-icon"></i>
-                    <h2>TaskMaster Pro</h2>
+                    <h2>TaskMaster</h2>
                 </div>
             </div>
             <nav class="sidebar-nav">
@@ -48,16 +48,9 @@
                     <button class="sidebar-toggle">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" placeholder="Search...">
-                    </div>
+
                 </div>
                 <div class="header-right">
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
                     <div class="user-profile dropdown">
                         <div class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                             <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=random" alt="User">
@@ -65,8 +58,7 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>                            
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
                                 <i class="fas fa-sign-out-alt me-2"></i>Logout

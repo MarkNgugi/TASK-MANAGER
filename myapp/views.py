@@ -8,6 +8,8 @@ from .forms import *
 from django.contrib import messages
 from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.utils.timesince import timesince
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 
 class CustomLoginView(LoginView):
     template_name = 'myapp/login.html'
@@ -35,6 +37,7 @@ def admin_dashboard(request):
     # Get all stats
     total_tasks = Task.objects.count()
     pending_tasks = Task.objects.filter(status='pending').count()
+    in_progress = Task.objects.filter(status='in_progress').count()
     active_users = CustomUser.objects.filter(is_admin=False).count()
     completed_tasks = Task.objects.filter(status='verified').count()
     
@@ -81,6 +84,7 @@ def admin_dashboard(request):
     context = {
         'total_tasks': total_tasks,
         'pending_tasks': pending_tasks,
+        'in_progress':in_progress,
         'active_users': active_users,
         'completed_tasks': completed_tasks,
         'top_performers': top_performers,
@@ -418,6 +422,32 @@ def verify_task(request, pk):
         form = TaskVerificationForm(instance=task)
     
     return render(request, 'myapp/task_verify.html', {'form': form, 'task': task})
+
+
+@login_required
+def user_profile(request):
+    if request.method == 'POST':
+        if 'profile_form' in request.POST:
+            profile_form = UserProfileForm(request.POST, instance=request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Your profile was successfully updated!')
+                return redirect('user_profile')
+        elif 'password_form' in request.POST:
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # Important!
+                messages.success(request, 'Your password was successfully updated!')
+                return redirect('user_profile')
+    else:
+        profile_form = UserProfileForm(instance=request.user)
+        password_form = PasswordChangeForm(request.user)
+    
+    return render(request, 'myapp/user_profile.html', {
+        'profile_form': profile_form,
+        'password_form': password_form
+    })
 
 
 def logout_view(request):

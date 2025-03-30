@@ -4,60 +4,66 @@
 {% block title %}{% if form.instance.pk %}Edit Task{% else %}Create New Task{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card shadow-lg border-0 rounded-lg overflow-hidden">
-                <div class="card-header bg-gradient-primary-to-secondary text-white py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 font-weight-light">
-                            <i class="fas fa-tasks me-2"></i>
-                            {% if form.instance.pk %}Edit Task{% else %}Create New Task{% endif %}
-                        </h4>
-                        <a href="{% url 'managetasks' %}" class="btn btn-sm btn-outline-light">
-                            <i class="fas fa-arrow-left me-1"></i> Back to Tasks
-                        </a>
-                    </div>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-tasks text-primary me-2"></i>
+                        {% if form.instance.pk %}Edit Task{% else %}Create New Task{% endif %}
+                    </h4>
                 </div>
-                <div class="card-body p-0">
+                
+                <div class="card-body">
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
-                        <div class="p-4">
-                            <!-- Title Field -->
-                            <div class="mb-4">
-                                <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-heading me-2 text-primary"></i>Title*
-                                </label>
-                                {{ form.title }}
-                                {% if form.title.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.title.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <!-- Description Field -->
-                            <div class="mb-4">
-                                <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
-                                    <i class="fas fa-align-left me-2 text-primary"></i>Description
-                                </label>
-                                {{ form.description }}
-                                {% if form.description.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.description.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="row">
-                                <!-- Assigned To Field -->
+                        <!-- Title -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Title *</label>
+                            <input type="text" 
+                                   class="form-control form-control-lg border-2 py-2"
+                                   name="{{ form.title.name }}"
+                                   id="{{ form.title.id_for_label }}"
+                                   value="{{ form.title.value|default:'' }}"
+                                   required>
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control border-2 py-2" 
+                                      name="{{ form.description.name }}"
+                                      id="{{ form.description.id_for_label }}"
+                                      rows="3">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row g-3">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
                                 {% if form.assigned_to %}
-                                <div class="col-md-6 mb-4">
-                                    <label for="{{ form.assigned_to.id_for_label }}" class="form-label fw-bold">
-                                        <i class="fas fa-user-tie me-2 text-primary"></i>Assign To*
-                                    </label>
-                                    {{ form.assigned_to }}
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Assign To *</label>
+                                    <select class="form-select border-2 py-2"
+                                            name="{{ form.assigned_to.name }}"
+                                            id="{{ form.assigned_to.id_for_label }}">
+                                        {% for user in form.assigned_to.field.queryset %}
+                                            <option value="{{ user.pk }}" {% if form.assigned_to.value == user.pk %}selected{% endif %}>
+                                                {{ user.username }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
                                     {% if form.assigned_to.errors %}
                                         <div class="invalid-feedback d-block">
                                             {{ form.assigned_to.errors }}
@@ -66,15 +72,13 @@
                                 </div>
                                 {% endif %}
                                 
-                                <!-- Due Date Field -->
-                                <div class="col-md-6 mb-4">
-                                    <label for="{{ form.due_date.id_for_label }}" class="form-label fw-bold">
-                                        <i class="fas fa-calendar-day me-2 text-primary"></i>Due Date
-                                    </label>
-                                    <div class="input-group">
-                                        {{ form.due_date }}
-                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                    </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Due Date</label>
+                                    <input type="datetime-local"
+                                           class="form-control border-2 py-2"
+                                           name="{{ form.due_date.name }}"
+                                           id="{{ form.due_date.id_for_label }}"
+                                           value="{{ form.due_date.value|default:'' }}">
                                     {% if form.due_date.errors %}
                                         <div class="invalid-feedback d-block">
                                             {{ form.due_date.errors }}
@@ -83,13 +87,19 @@
                                 </div>
                             </div>
                             
-                            <div class="row">
-                                <!-- Status Field -->
-                                <div class="col-md-6 mb-4">
-                                    <label for="{{ form.status.id_for_label }}" class="form-label fw-bold">
-                                        <i class="fas fa-clipboard-check me-2 text-primary"></i>Status*
-                                    </label>
-                                    {{ form.status }}
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Status *</label>
+                                    <select class="form-select border-2 py-2"
+                                            name="{{ form.status.name }}"
+                                            id="{{ form.status.id_for_label }}">
+                                        {% for value, label in form.status.field.choices %}
+                                            <option value="{{ value }}" {% if form.status.value == value %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
                                     {% if form.status.errors %}
                                         <div class="invalid-feedback d-block">
                                             {{ form.status.errors }}
@@ -97,14 +107,23 @@
                                     {% endif %}
                                 </div>
                                 
-                                <!-- Rating Field -->
                                 {% if form.rating %}
-                                <div class="col-md-6 mb-4">
-                                    <label for="{{ form.rating.id_for_label }}" class="form-label fw-bold">
-                                        <i class="fas fa-star me-2 text-primary"></i>Rating (1-5)
-                                    </label>
-                                    <div class="rating-input">
-                                        {{ form.rating }}
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Rating (1-5)</label>
+                                    <div class="d-flex align-items-center">
+                                        <input type="number"
+                                               class="form-control border-2 py-2"
+                                               name="{{ form.rating.name }}"
+                                               id="{{ form.rating.id_for_label }}"
+                                               min="1"
+                                               max="5"
+                                               step="1"
+                                               value="{{ form.rating.value|default:'' }}">
+                                        <div class="rating-preview ms-3">
+                                            {% for i in "12345" %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endfor %}
+                                        </div>
                                     </div>
                                     {% if form.rating.errors %}
                                         <div class="invalid-feedback d-block">
@@ -116,14 +135,13 @@
                             </div>
                         </div>
                         
-                        <!-- Form Footer -->
-                        <div class="card-footer bg-light py-3 border-top">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary btn-lg px-4 py-2 shadow-sm">
-                                    <i class="fas fa-save me-2"></i>
-                                    Save Task
-                                </button>
-                            </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="{% url 'managetasks' %}" class="btn btn-outline-secondary me-2">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>Save Task
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -135,105 +153,75 @@
 
 {% block extra_css %}
 <style>
-    /* Custom styling for a modern look */
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border: none;
-    }
-    
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    }
-    
-    .card-header {
-        border-bottom: none;
-    }
-    
-    .bg-gradient-primary-to-secondary {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-    }
-    
     .form-control, .form-select {
-        border-radius: 0.375rem;
-        padding: 0.75rem 1rem;
-        border: 1px solid #ced4da;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 15px;
+        transition: all 0.2s ease;
     }
     
     .form-control:focus, .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
     
-    .rating-input select {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 1em;
+    .form-control-lg {
+        padding: 12px 16px;
+        font-size: 1rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #4a5568;
     }
     
     .btn-primary {
-        background-color: #4e73df;
+        background-color: #4f46e5;
         border: none;
-        transition: all 0.3s ease;
+        padding: 10px 20px;
+        border-radius: 8px;
     }
     
-    .btn-primary:hover {
-        background-color: #2e59d9;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    .btn-outline-secondary {
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
     }
     
-    .btn-outline-light:hover {
-        background-color: rgba(255,255,255,0.1);
+    .rating-preview i {
+        font-size: 1.25rem;
+        margin-right: 3px;
     }
     
     .invalid-feedback {
         font-size: 0.875rem;
+        color: #e53e3e;
+        margin-top: 6px;
     }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Add modern form validation and interactions
     document.addEventListener('DOMContentLoaded', function() {
-        // Enable Bootstrap validation
-        (function () {
-            'use strict'
-            
-            // Fetch all the forms we want to apply custom Bootstrap validation styles to
-            var forms = document.querySelectorAll('.needs-validation')
-            
-            // Loop over them and prevent submission
-            Array.prototype.slice.call(forms)
-                .forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault()
-                            event.stopPropagation()
-                        }
-                        
-                        form.classList.add('was-validated')
-                    }, false)
-                })
-        })()
+        // Rating stars preview
+        const ratingInput = document.querySelector('input[name="{{ form.rating.name }}"]');
+        const stars = document.querySelectorAll('.rating-preview i');
         
-        // Add animation to form elements when focused
-        const formControls = document.querySelectorAll('.form-control, .form-select');
-        formControls.forEach(control => {
-            control.addEventListener('focus', function() {
-                this.parentElement.classList.add('focused');
+        if (ratingInput && stars) {
+            ratingInput.addEventListener('input', function() {
+                const value = parseInt(this.value) || 0;
+                stars.forEach((star, index) => {
+                    star.classList.toggle('fas', index < value);
+                    star.classList.toggle('far', index >= value);
+                });
             });
             
-            control.addEventListener('blur', function() {
-                this.parentElement.classList.remove('focused');
-            });
-        });
+            // Initialize if value exists
+            if (ratingInput.value) {
+                ratingInput.dispatchEvent(new Event('input'));
+            }
+        }
     });
 </script>
 {% endblock %}
