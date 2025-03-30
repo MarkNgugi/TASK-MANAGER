@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import *
+from django.contrib import messages
 
 class CustomLoginView(LoginView):
     template_name = 'myapp/login.html'
@@ -57,14 +58,18 @@ def admin_dashboard(request):
     }
     return render(request, 'myapp/admin_dashboard.html', context)
 
+@login_required
 def user_dashboard(request):
     if request.user.is_admin:
         return redirect('admin_dashboard')
     
     user = request.user
-    pending_count = user.assigned_tasks.filter(status='pending').count()
-    in_progress_count = user.assigned_tasks.filter(status='in_progress').count()
-    completed_count = user.assigned_tasks.filter(status__in=['completed', 'verified']).count()
+    
+    # Task counts and task list
+    tasks = user.assigned_tasks.all().order_by('due_date')
+    pending_count = tasks.filter(status='pending').count()
+    in_progress_count = tasks.filter(status='in_progress').count()
+    completed_count = tasks.filter(status__in=['completed', 'verified']).count()
     
     # Calculate progress to next reward level
     points_needed = max(0, (user.points // 100 + 1) * 100 - user.points)
@@ -97,6 +102,7 @@ def user_dashboard(request):
     ]
     
     context = {
+        'tasks': tasks,
         'pending_count': pending_count,
         'in_progress_count': in_progress_count,
         'completed_count': completed_count,
@@ -107,7 +113,7 @@ def user_dashboard(request):
         'top_performers': top_performers,
         'user_position': user_position,
         'user_completed': completed_count,
-        'user_rating': 4,
+        'user_rating': 4,  # This should be calculated from actual ratings
         'recent_activities': recent_activities,
     }
     return render(request, 'myapp/user_dashboard.html', context)
@@ -191,13 +197,95 @@ def edit_task(request, pk):
     return render(request, 'myapp/task_form.html', context)
 
 
+
+
+@login_required
 def users(request):
-    context={}
-    return render(request,'myapp/users.html',context)
+    if not request.user.is_admin:
+        return redirect('user_dashboard')
+    
+    # Exclude admin users from the list
+    users = CustomUser.objects.filter(is_admin=False).order_by('-date_joined')
+    
+    # Add completed tasks count to each user
+    for user in users:
+        user.completed_tasks = Task.objects.filter(
+            assigned_to=user, 
+            status='completed'
+        ).count()
+        user.in_progress_tasks = Task.objects.filter(
+            assigned_to=user, 
+            status='in_progress'
+        ).count()
+        user.pending_tasks = Task.objects.filter(
+            assigned_to=user, 
+            status='pending'
+        ).count()
+    
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password('default123')  # Set default password
+            user.save()
+            return redirect('users')
+    else:
+        form = CustomUserCreationForm()
+    
+    context = {
+        'users': users,
+        'form': form
+    }
+    return render(request, 'myapp/users.html', context)
+
+@login_required
+def user_tasks(request):
+    user = request.user
+    tasks = user.assigned_tasks.all().order_by('due_date')
+    
+    # Count tasks by status
+    task_counts = {
+        'pending': tasks.filter(status='pending').count(),
+        'in_progress': tasks.filter(status='in_progress').count(),
+        'completed': tasks.filter(status__in=['completed', 'verified']).count(),
+    }
+    
+    context = {
+        'tasks': tasks,
+        'task_counts': task_counts,
+        'user': user
+    }
+    return render(request, 'myapp/user_tasks.html', context)
+
 
 def leaderboard(request):
     context={}
     return render(request,'myapp/leaderboard.html',context)
+
+
+@login_required
+def start_task(request, pk):
+    task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
+    if task.status == 'pending':
+        task.status = 'in_progress'
+        task.save()
+        messages.success(request, f'Task "{task.title}" has been started!')
+    return redirect('user_tasks')
+
+@login_required
+def complete_task(request, pk):
+    task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
+    if task.status == 'in_progress':
+        task.status = 'completed'
+        task.save()
+        messages.success(request, f'Task "{task.title}" has been completed!')
+    return redirect('user_tasks')
+
+@login_required
+def task_detail(request, pk):
+    task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
+    context = {'task': task}
+    return render(request, 'myapp/task_detail.html', context)
 
 
 @login_required

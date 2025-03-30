@@ -1,5 +1,6 @@
 # myapp/forms.py
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 from .models import *
 
 class TaskForm(forms.ModelForm):
@@ -46,3 +47,22 @@ class TaskVerificationForm(forms.ModelForm):
         widgets = {
             'rating': forms.NumberInput(attrs={'min': 1, 'max': 5}),
         }
+
+class CustomUserCreationForm(UserCreationForm):
+    password1 = forms.CharField(
+        widget=forms.HiddenInput(),
+        initial="default123"
+    )
+    password2 = forms.CharField(
+        widget=forms.HiddenInput(),
+        initial="default123"
+    )
+    
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'is_admin')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['is_admin'].label = "Is Admin"
+        self.fields['is_admin'].required = False        

@@ -1,0 +1,202 @@
+{% extends "myapp/base_user.html" %}
+{% load static %}
+
+{% block title %}My Tasks{% endblock %}
+
+{% block content %}
+<style>
+    .task-card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 0.75rem rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+    }
+    
+    .task-pending {
+        border-left-color: #f6c23e;
+    }
+    
+    .task-in_progress {
+        border-left-color: #36b9cc;
+    }
+    
+    .task-completed {
+        border-left-color: #1cc88a;
+    }
+    
+    .task-verified {
+        border-left-color: #4e73df;
+    }
+    
+    .task-status {
+        font-weight: 500;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .status-pending {
+        background-color: #f6c23e;
+        color: #000;
+    }
+    
+    .status-in_progress {
+        background-color: #36b9cc;
+        color: #fff;
+    }
+    
+    .status-completed {
+        background-color: #1cc88a;
+        color: #fff;
+    }
+    
+    .status-verified {
+        background-color: #4e73df;
+        color: #fff;
+    }
+    
+    .task-actions .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .task-due.overdue {
+        color: #e74a3b;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">My Tasks</h1>
+        <div class="d-flex">
+            <div class="dropdown me-2">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                        id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-filter fa-sm"></i> Filter
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                    <li><a class="dropdown-item" href="?status=all">All Tasks</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="?status=pending">Pending</a></li>
+                    <li><a class="dropdown-item" href="?status=in_progress">In Progress</a></li>
+                    <li><a class="dropdown-item" href="?status=completed">Completed</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Pending Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_counts.pending }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                In Progress</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_counts.in_progress }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-spinner fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Completed Tasks</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ task_counts.completed }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            {% if tasks %}
+                {% for task in tasks %}
+                <div class="task-card mb-3 p-3 task-{{ task.status }}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="mb-1">{{ task.title }}</h5>
+                            <p class="text-muted mb-2">{{ task.description|truncatechars:120 }}</p>
+                        </div>
+                        <span class="task-status status-{{ task.status }}">
+                            {{ task.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="task-due {% if task.is_overdue %}overdue{% endif %}">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                Due: {{ task.due_date|date:"M d, Y" }}
+                                {% if task.is_overdue %}
+                                <span class="badge bg-danger ms-2">Overdue</span>
+                                {% endif %}
+                            </span>
+                            
+                            {% if task.rating %}
+                            <span class="ms-3">
+                                <i class="fas fa-star text-warning"></i>
+                                Rating: {{ task.rating }}/5
+                            </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="task-actions">
+                            {% if task.status == 'pending' %}
+                            <a href="{% url 'start_task' task.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-play me-1"></i> Start
+                            </a>
+                            {% elif task.status == 'in_progress' %}
+                            <a href="{% url 'complete_task' task.id %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-check me-1"></i> Complete
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye me-1"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks fa-3x text-gray-300 mb-3"></i>
+                    <h5 class="text-gray-500">No tasks assigned</h5>
+                    <p>You don't have any tasks assigned to you yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
