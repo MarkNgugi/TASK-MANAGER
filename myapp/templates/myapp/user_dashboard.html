@@ -1,0 +1,197 @@
+<!-- templates/myapp/user_dashboard.html -->
+{% extends "myapp/base_user.html" %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title mb-4">Welcome back, {{ request.user.username }}!</h4>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="icon-circle bg-primary text-white me-3">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">Your Points</h6>
+                        <h2 class="mb-0">{{ request.user.points }}</h2>
+                    </div>
+                </div>
+                <div class="progress mb-4" style="height: 10px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ progress }}%;" 
+                         aria-valuenow="{{ progress }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100"></div>
+                </div>
+                <p class="text-muted">Only {{ points_needed }} more points to reach the next reward level!</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
+                <div class="avatar-lg mx-auto mb-3">
+                    <div class="avatar-title bg-light rounded-circle text-primary">
+                        <i class="fas fa-medal fa-2x"></i>
+                    </div>
+                </div>
+                <h5>Current Reward Level</h5>
+                <h3 class="text-success">{{ reward_level }}</h3>
+                <p class="text-muted mb-0">{{ rewards_available }} rewards available</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Your Tasks</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                    <div>
+                        <h6 class="mb-1">Pending</h6>
+                        <h4 class="text-warning">{{ pending_count }}</h4>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">In Progress</h6>
+                        <h4 class="text-info">{{ in_progress_count }}</h4>
+                    </div>
+                    <div>
+                        <h6 class="mb-1">Completed</h6>
+                        <h4 class="text-success">{{ completed_count }}</h4>
+                    </div>
+                </div>
+                <a href="{% url 'my_tasks' %}" class="btn btn-outline-primary w-100 mt-2">
+                    View All Tasks <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for activity in recent_activities %}
+                    <div class="list-group-item border-0">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0">
+                                <div class="avatar-xs">
+                                    <span class="avatar-title rounded-circle bg-light text-primary">
+                                        <i class="{{ activity.icon }}"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="mb-1">{{ activity.title }}</h6>
+                                <p class="text-muted mb-0">{{ activity.date }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">Top Performers</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Points</th>
+                        <th>Completed</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in top_performers|slice:":5" %}
+                    <tr>
+                        <td>
+                            <div class="rank-badge rank-{{ forloop.counter }}">
+                                {{ forloop.counter }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" 
+                                         class="avatar-xs rounded-circle" alt="{{ user.username }}">
+                                </div>
+                                <div class="flex-grow-1 ms-2">
+                                    {{ user.username }}
+                                    {% if forloop.counter <= 3 %}
+                                    <span class="badge bg-warning text-dark ms-1">Top {{ forloop.counter }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user.points }}</td>
+                        <td>{{ user.completed_tasks }}</td>
+                        <td>
+                            <div class="rating">
+                                {% for i in "12345" %}
+                                    {% if i|add:0 <= user.average_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if user_position > 5 %}
+                    <tr class="your-position">
+                        <td>{{ user_position }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=random" 
+                                         class="avatar-xs rounded-circle" alt="{{ request.user.username }}">
+                                </div>
+                                <div class="flex-grow-1 ms-2">
+                                    You
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ request.user.points }}</td>
+                        <td>{{ user_completed }}</td>
+                        <td>
+                            <div class="rating">
+                                {% for i in "12345" %}
+                                    {% if i|add:0 <= user_rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{% url 'leaderboard' %}" class="btn btn-outline-primary w-100 mt-3">
+            View Full Leaderboard <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

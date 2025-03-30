@@ -1,0 +1,104 @@
+/* static/css/user.css */
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #f8f9fc;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --light-color: #f8f9fa;
+    --dark-color: #5a5c69;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fc;
+    color: #333;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+}
+
+.card {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.card-header {
+    padding: 1rem 1.35rem;
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.icon-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.avatar-xs {
+    width: 2rem;
+    height: 2rem;
+}
+
+.avatar-lg {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.rank-badge {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+}
+
+.rank-1 {
+    background-color: #ffd700;
+}
+
+.rank-2 {
+    background-color: #c0c0c0;
+}
+
+.rank-3 {
+    background-color: #cd7f32;
+}
+
+.rank-4, .rank-5 {
+    background-color: var(--dark-color);
+}
+
+.your-position {
+    background-color: rgba(78, 115, 223, 0.1);
+    font-weight: 500;
+}
+
+.rating {
+    color: var(--warning-color);
+}
+
+.progress {
+    border-radius: 0.5rem;
+    background-color: #eaecf4;
+}
+
+.progress-bar {
+    border-radius: 0.5rem;
+}
