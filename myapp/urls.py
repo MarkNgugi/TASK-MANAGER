@@ -17,6 +17,9 @@ urlpatterns = [
     path('tasks/<int:pk>/edit/', edit_task, name='edit_task'),
     path('tasks/<int:pk>/complete/', complete_task, name='complete_task'),
     path('tasks/<int:pk>/verify/', verify_task, name='verify_task'),
+
+    path('users/', users, name='users'),
+
     
     # Leaderboard
     path('leaderboard/', leaderboard, name='leaderboard'),

@@ -57,7 +57,6 @@ def admin_dashboard(request):
     }
     return render(request, 'myapp/admin_dashboard.html', context)
 
-@login_required
 def user_dashboard(request):
     if request.user.is_admin:
         return redirect('admin_dashboard')
@@ -164,20 +163,15 @@ def edit_task(request, pk):
     }
     return render(request, 'myapp/task_form.html', context)
 
-@login_required
+
+def users(request):
+    context={}
+    return render(request,'myapp/users.html',context)
+
 def leaderboard(request):
-    users = CustomUser.objects.filter(is_admin=False)\
-        .annotate(
-            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
-            average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
-        )\
-        .order_by('-points')
-    
-    context = {
-        'users': users,
-        'is_admin': request.user.is_admin,
-    }
-    return render(request, 'myapp/leaderboard.html', context)
+    context={}
+    return render(request,'myapp/leaderboard.html',context)
+
 
 @login_required
 def complete_task(request, pk):

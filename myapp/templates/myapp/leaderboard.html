@@ -1,0 +1,217 @@
+{% extends "myapp/base_admin.html" %}
+{% load static %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4e73df;
+        --secondary: #858796;
+        --success: #1cc88a;
+        --info: #36b9cc;
+        --warning: #f6c23e;
+        --danger: #e74a3b;
+        --light: #f8f9fc;
+        --dark: #5a5c69;
+        --gold: #ffd700;
+        --silver: #c0c0c0;
+        --bronze: #cd7f32;
+    }
+
+    .leaderboard-container {
+        padding: 2rem;
+    }
+
+    .leaderboard-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+        overflow: hidden;
+    }
+
+    .leaderboard-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .leaderboard-header h2 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .leaderboard-table th {
+        padding: 1rem 1.5rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--secondary);
+        background-color: #f8f9fa;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+
+    .leaderboard-table td {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .leaderboard-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .rank {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        font-weight: 600;
+        margin-right: 0.5rem;
+    }
+
+    .rank-1 {
+        background-color: var(--gold);
+        color: #333;
+    }
+
+    .rank-2 {
+        background-color: var(--silver);
+        color: #333;
+    }
+
+    .rank-3 {
+        background-color: var(--bronze);
+        color: white;
+    }
+
+    .rank-other {
+        background-color: #e9ecef;
+        color: var(--dark);
+    }
+
+    .points-badge {
+        background-color: var(--primary);
+        color: white;
+        padding: 0.35em 0.65em;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .rating {
+        color: var(--warning);
+    }
+
+    .your-position {
+        background-color: rgba(78, 115, 223, 0.1);
+        font-weight: 500;
+    }
+
+    .time-filter {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .time-filter .btn {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+        .leaderboard-table th, 
+        .leaderboard-table td {
+            padding: 0.75rem;
+        }
+        
+        .leaderboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
+
+<div class="leaderboard-container">
+    <div class="leaderboard-card">
+        <div class="leaderboard-header">
+            <h2><i class="fas fa-trophy me-2"></i>Performance Leaderboard</h2>
+            <div class="time-filter">
+                <button class="btn btn-sm btn-outline-primary active">All Time</button>
+                <button class="btn btn-sm btn-outline-secondary">This Month</button>
+                <button class="btn btn-sm btn-outline-secondary">This Week</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User</th>
+                        <th>Completed Tasks</th>
+                        <th>Points</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in leaderboard %}
+                    <tr {% if user == request.user %}class="your-position"{% endif %}>
+                        <td>
+                            <span class="rank rank-{{ forloop.counter }}">
+                                {{ forloop.counter }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" 
+                                     class="user-avatar" 
+                                     alt="{{ user.username }}">
+                                <div>
+                                    {{ user.username }}
+                                    {% if user == request.user %}<span class="badge bg-primary ms-2">You</span>{% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user.completed_tasks }}</td>
+                        <td><span class="points-badge">{{ user.points }}</span></td>
+                        <td>
+                            <div class="rating">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= user.average_rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
