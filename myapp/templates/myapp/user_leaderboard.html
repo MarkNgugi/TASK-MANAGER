@@ -1,0 +1,121 @@
+{% extends "myapp/base_user.html" %}
+{% load static %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<style>
+    .leaderboard-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .leaderboard-card {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .rank-badge {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: 600;
+    }
+    
+    .rank-1 {
+        background-color: #FFD700;
+        color: #000;
+    }
+    
+    .rank-2 {
+        background-color: #C0C0C0;
+        color: #000;
+    }
+    
+    .rank-3 {
+        background-color: #CD7F32;
+        color: #000;
+    }
+    
+    .your-position {
+        background-color: rgba(78, 115, 223, 0.1);
+    }
+    
+    .avatar-xs {
+        width: 32px;
+        height: 32px;
+    }
+</style>
+
+<div class="leaderboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Leaderboard</h1>
+        <div class="badge bg-primary">
+            Your Rank: {% if user_position %}#{{ user_position }}{% else %}Not ranked{% endif %}
+        </div>
+    </div>
+
+    <div class="card leaderboard-card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Points</th>
+                            <th>Completed</th>
+                            <th>Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in leaderboard_users %}
+                        <tr {% if user == request.user %}class="your-position"{% endif %}>
+                            <td>
+                                <div class="rank-badge rank-{{ forloop.counter }}">
+                                    {{ forloop.counter }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-shrink-0">
+                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" 
+                                             class="avatar-xs rounded-circle" alt="{{ user.username }}">
+                                    </div>
+                                    <div class="flex-grow-1 ms-2">
+                                        {{ user.username }}
+                                        {% if forloop.counter <= 3 %}
+                                        <span class="badge bg-warning text-dark ms-1">Top {{ forloop.counter }}</span>
+                                        {% endif %}
+                                        {% if user == request.user %}
+                                        <span class="badge bg-primary ms-1">You</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ user.points }}</td>
+                            <td>{{ user.completed_tasks }}</td>
+                            <td>
+                                <div class="rating">
+                                    {% for i in "12345" %}
+                                        {% if i|add:0 <= user.average_rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

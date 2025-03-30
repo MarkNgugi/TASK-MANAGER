@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from .forms import *
 from django.contrib import messages
+from django.contrib.humanize.templatetags.humanize import naturaltime
 
 class CustomLoginView(LoginView):
     template_name = 'myapp/login.html'
@@ -65,11 +66,19 @@ def user_dashboard(request):
     
     user = request.user
     
-    # Task counts and task list
+    # Get tasks and counts
     tasks = user.assigned_tasks.all().order_by('due_date')
     pending_count = tasks.filter(status='pending').count()
     in_progress_count = tasks.filter(status='in_progress').count()
     completed_count = tasks.filter(status__in=['completed', 'verified']).count()
+    
+    # Calculate actual average rating
+    rating_info = user.assigned_tasks.filter(rating__isnull=False)\
+                    .aggregate(
+                        avg_rating=Avg('rating'),
+                        rated_tasks=Count('id')
+                    )
+    user_rating = round(rating_info['avg_rating'] or 0, 1)
     
     # Calculate progress to next reward level
     points_needed = max(0, (user.points // 100 + 1) * 100 - user.points)
@@ -77,7 +86,25 @@ def user_dashboard(request):
     
     # Get reward level
     reward_level = f"Level {user.points // 100 + 1}"
-    rewards_available = user.rewards
+    
+    # Get recent activities from actual rated tasks
+    recent_activities = []
+    rated_tasks = user.assigned_tasks.filter(rating__isnull=False)\
+                    .order_by('-created_at')[:3]
+    
+    for task in rated_tasks:
+        recent_activities.append({
+            'title': f'Received {task.rating * 10} points for "{task.title}"',
+            'date': naturaltime(task.created_at),
+            'icon': 'fas fa-coins'
+        })
+    
+    # Add some default activities if not enough rated tasks
+    if len(recent_activities) < 3:
+        recent_activities.extend([
+            {'title': 'Task "Update profile" marked as completed', 'date': '2 hours ago', 'icon': 'fas fa-check-circle'},
+            {'title': 'Task "Write documentation" assigned', 'date': '3 days ago', 'icon': 'fas fa-tasks'},
+        ][:3-len(recent_activities)])
     
     # Get top performers
     top_performers = CustomUser.objects.filter(is_admin=False)\
@@ -94,26 +121,18 @@ def user_dashboard(request):
             user_position = i
             break
     
-    # Sample recent activities
-    recent_activities = [
-        {'title': 'Task "Update profile" marked as completed', 'date': '2 hours ago', 'icon': 'fas fa-check-circle'},
-        {'title': 'Received 10 points for "Fix bugs"', 'date': '1 day ago', 'icon': 'fas fa-coins'},
-        {'title': 'Task "Write documentation" assigned', 'date': '3 days ago', 'icon': 'fas fa-tasks'},
-    ]
-    
     context = {
-        'tasks': tasks,
         'pending_count': pending_count,
         'in_progress_count': in_progress_count,
         'completed_count': completed_count,
         'progress': progress,
         'points_needed': points_needed,
         'reward_level': reward_level,
-        'rewards_available': rewards_available,
+        'rewards_available': user.rewards,
         'top_performers': top_performers,
         'user_position': user_position,
         'user_completed': completed_count,
-        'user_rating': 4,  # This should be calculated from actual ratings
+        'user_rating': user_rating,
         'recent_activities': recent_activities,
     }
     return render(request, 'myapp/user_dashboard.html', context)
@@ -257,6 +276,31 @@ def user_tasks(request):
     }
     return render(request, 'myapp/user_tasks.html', context)
 
+@login_required
+def user_leaderboard(request):
+    # Get all non-admin users with their points, completed tasks, and average rating
+    leaderboard_users = CustomUser.objects.filter(is_admin=False)\
+        .annotate(
+            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
+            average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
+        )\
+        .order_by('-points')
+    
+    # Find current user's position
+    user_position = None
+    for i, user in enumerate(leaderboard_users, 1):
+        if user == request.user:
+            user_position = i
+            break
+    
+    context = {
+        'leaderboard_users': leaderboard_users,
+        'user_position': user_position,
+        'user_completed': request.user.assigned_tasks.filter(status='verified').count(),
+        'user_rating': request.user.assigned_tasks.filter(rating__isnull=False)\
+                         .aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0,
+    }
+    return render(request, 'myapp/user_leaderboard.html', context)
 
 def leaderboard(request):
     context={}
@@ -272,14 +316,6 @@ def start_task(request, pk):
         messages.success(request, f'Task "{task.title}" has been started!')
     return redirect('user_tasks')
 
-@login_required
-def complete_task(request, pk):
-    task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
-    if task.status == 'in_progress':
-        task.status = 'completed'
-        task.save()
-        messages.success(request, f'Task "{task.title}" has been completed!')
-    return redirect('user_tasks')
 
 @login_required
 def task_detail(request, pk):
@@ -291,11 +327,17 @@ def task_detail(request, pk):
 @login_required
 def complete_task(request, pk):
     task = get_object_or_404(Task, pk=pk, assigned_to=request.user)
+    
     if request.method == 'POST':
-        task.status = 'completed'
-        task.save()
-        return redirect('my_tasks')
-    return render(request, 'myapp/task_confirm_complete.html', {'task': task})
+        if task.status == 'in_progress':
+            task.status = 'completed'
+            task.save()
+            messages.success(request, f'Task "{task.title}" has been completed!')
+            return redirect('user_tasks')
+    
+    # If GET request, show confirmation page
+    context = {'task': task}
+    return render(request, 'myapp/task_confirm_complete.html', context)
 
 @login_required
 def verify_task(request, pk):

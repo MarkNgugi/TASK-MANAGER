@@ -1,0 +1,26 @@
+{% extends "myapp/base_user.html" %}
+{% load static %}
+
+{% block title %}Complete Task{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-body text-center">
+            <h2 class="mb-4">Complete Task</h2>
+            <p>Are you sure you want to mark this task as completed?</p>
+            <h4 class="mb-4">"{{ task.title }}"</h4>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-lg me-3">
+                    <i class="fas fa-check-circle me-2"></i> Yes, Complete
+                </button>
+                <a href="{% url 'user_tasks' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-times-circle me-2"></i> Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

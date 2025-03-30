@@ -15,8 +15,7 @@ urlpatterns = [
     path('my-tasks/', user_tasks, name='user_tasks'),
     path('tasks/', task_list, name='task_list'),
     path('tasks/create/', create_task, name='create_task'),
-    path('tasks/<int:pk>/edit/', edit_task, name='edit_task'),
-    path('tasks/<int:pk>/complete/', complete_task, name='complete_task'),
+    path('tasks/<int:pk>/edit/', edit_task, name='edit_task'),        
     path('tasks/<int:pk>/verify/', verify_task, name='verify_task'),
 
     path('task/<int:pk>/start/', start_task, name='start_task'),
@@ -28,6 +27,7 @@ urlpatterns = [
 
     
     # Leaderboard
+    path('user-leaderboard/', user_leaderboard, name='userleaderboard'),
     path('leaderboard/', leaderboard, name='leaderboard'),
     
 ]
