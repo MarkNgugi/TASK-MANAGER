@@ -7,7 +7,7 @@ urlpatterns = [
     path('redirect/', redirect_view, name='redirect_view'),
     path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
     path('user-dashboard/', user_dashboard, name='user_dashboard'),
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', logout_view, name='logout'),
     
 
     path('manage-tasks/', manage_tasks, name='managetasks'),
@@ -21,6 +21,7 @@ urlpatterns = [
     path('task/<int:pk>/start/', start_task, name='start_task'),
     path('task/<int:pk>/complete/', complete_task, name='complete_task'),
     path('task/<int:pk>/', task_detail, name='task_detail'),
+    path('tasks/delete/<int:task_id>/', delete_task, name='delete_task'),
 
 
     path('users/', users, name='users'),

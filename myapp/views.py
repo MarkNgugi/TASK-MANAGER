@@ -1,5 +1,5 @@
 from django.shortcuts import redirect,render,get_object_or_404
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate,logout
 from django.db.models import Count, Q, Avg 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
@@ -216,7 +216,14 @@ def edit_task(request, pk):
     return render(request, 'myapp/task_form.html', context)
 
 
-
+@login_required
+def delete_task(request, task_id):
+    if request.method == 'POST':
+        task = get_object_or_404(Task, id=task_id)
+        task.delete()
+        messages.success(request, 'Task deleted successfully')
+        return redirect('managetasks')
+    return redirect('managetasks')
 
 @login_required
 def users(request):
@@ -262,17 +269,26 @@ def user_tasks(request):
     user = request.user
     tasks = user.assigned_tasks.all().order_by('due_date')
     
-    # Count tasks by status
+    # Handle filtering
+    status_filter = request.GET.get('status')
+    if status_filter and status_filter != 'all':
+        if status_filter == 'completed':
+            tasks = tasks.filter(status__in=['completed', 'verified'])
+        else:
+            tasks = tasks.filter(status=status_filter)
+    
+    # Count tasks by status (must be before filtering for accurate counts)
     task_counts = {
-        'pending': tasks.filter(status='pending').count(),
-        'in_progress': tasks.filter(status='in_progress').count(),
-        'completed': tasks.filter(status__in=['completed', 'verified']).count(),
+        'pending': user.assigned_tasks.filter(status='pending').count(),
+        'in_progress': user.assigned_tasks.filter(status='in_progress').count(),
+        'completed': user.assigned_tasks.filter(status__in=['completed', 'verified']).count(),
     }
     
     context = {
         'tasks': tasks,
         'task_counts': task_counts,
-        'user': user
+        'user': user,
+        'status_filter': status_filter if status_filter else 'all'
     }
     return render(request, 'myapp/user_tasks.html', context)
 
@@ -362,3 +378,8 @@ def verify_task(request, pk):
         form = TaskVerificationForm(instance=task)
     
     return render(request, 'myapp/task_verify.html', {'form': form, 'task': task})
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')

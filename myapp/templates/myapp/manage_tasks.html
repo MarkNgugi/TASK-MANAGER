@@ -112,7 +112,132 @@
         background-color: #f8f9fa;
         border-color: #dee2e6;
     }
+
+    /* Modal styles */
+    .task-detail-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    
+    .task-detail-badge {
+        font-size: 0.9rem;
+    }
+    
+    .task-detail-value {
+        font-weight: 500;
+    }
+    
+    .star-filled {
+        color: #f1c40f;
+    }
+    
+    .star-empty {
+        color: #bdc3c7;
+    }
 </style>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this task? This action cannot be undone.</p>
+                <p><strong>Task:</strong> <span id="taskToDeleteTitle"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteTaskForm" method="POST" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailModalLabel">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4 id="taskDetailTitle" class="mb-3"></h4>
+                        <p id="taskDetailDescription" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-end">
+                            <span id="taskDetailStatus" class="task-detail-badge"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Assigned To</h6>
+                            <div class="d-flex align-items-center">
+                                <img id="taskDetailAssigneeImg" src="" class="task-detail-img me-3" alt="Assignee">
+                                <span id="taskDetailAssignee" class="task-detail-value"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Created By</h6>
+                            <div class="d-flex align-items-center">
+                                <img id="taskDetailCreatorImg" src="" class="task-detail-img me-3" alt="Creator">
+                                <span id="taskDetailCreator" class="task-detail-value"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Created On</h6>
+                            <p id="taskDetailCreated" class="task-detail-value"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Due Date</h6>
+                            <p id="taskDetailDue" class="task-detail-value"></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Rating</h6>
+                            <div id="taskDetailRating" class="task-detail-value">
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Admin Notes</h6>
+                            <p id="taskDetailNotes" class="task-detail-value"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="taskDetailEditBtn" href="#" class="btn btn-primary">
+                    <i class="fas fa-edit me-1"></i> Edit Task
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="admin-tasks-container">
     <!-- Header with Create Button -->
@@ -226,12 +351,30 @@
                                     <a href="{% url 'edit_task' task.id %}" class="btn btn-sm btn-outline-primary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <button class="btn btn-sm btn-outline-danger delete-task-btn" 
+                                            title="Delete"
+                                            data-task-id="{{ task.id }}"
+                                            data-task-title="{{ task.title }}"
+                                            data-delete-url="{% url 'delete_task' task.id %}">
                                         <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                    <a href="#" class="btn btn-sm btn-outline-secondary" title="View Details">
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary view-task-btn" 
+                                            title="View Details"
+                                            data-task-id="{{ task.id }}"
+                                            data-task-title="{{ task.title }}"
+                                            data-task-description="{{ task.description }}"
+                                            data-task-status="{{ task.status }}"
+                                            data-task-status-display="{{ task.get_status_display }}"
+                                            data-task-assigned-to="{{ task.assigned_to.username }}"
+                                            data-task-created-by="{{ task.created_by.username }}"
+                                            data-task-created="{{ task.created_at|date:'M d, Y H:i' }}"
+                                            data-task-due="{{ task.due_date|date:'M d, Y H:i' }}"
+                                            data-task-rating="{{ task.rating|default:0 }}"
+                                            data-task-is-overdue="{% if task.is_overdue %}true{% else %}false{% endif %}"
+                                            data-task-notes="{{ task.admin_notes|default:'No notes' }}"
+                                            data-edit-url="{% url 'edit_task' task.id %}">
                                         <i class="fas fa-eye"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -293,4 +436,90 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle delete button clicks
+    document.querySelectorAll('.delete-task-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const taskId = this.getAttribute('data-task-id');
+            const taskTitle = this.getAttribute('data-task-title');
+            const deleteUrl = this.getAttribute('data-delete-url');
+            
+            // Set modal content
+            document.getElementById('taskToDeleteTitle').textContent = taskTitle;
+            document.getElementById('deleteTaskForm').action = deleteUrl;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('deleteTaskModal'));
+            modal.show();
+        });
+    });
+    
+    // Handle view button clicks
+    document.querySelectorAll('.view-task-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Get all task data from data attributes
+            const taskId = this.getAttribute('data-task-id');
+            const taskTitle = this.getAttribute('data-task-title');
+            const taskDescription = this.getAttribute('data-task-description');
+            const taskStatus = this.getAttribute('data-task-status');
+            const taskStatusDisplay = this.getAttribute('data-task-status-display');
+            const taskAssignedTo = this.getAttribute('data-task-assigned-to');
+            const taskCreatedBy = this.getAttribute('data-task-created-by');
+            const taskCreated = this.getAttribute('data-task-created');
+            const taskDue = this.getAttribute('data-task-due');
+            const taskRating = parseInt(this.getAttribute('data-task-rating'));
+            const isOverdue = this.getAttribute('data-task-is-overdue') === 'true';
+            const taskNotes = this.getAttribute('data-task-notes');
+            const editUrl = this.getAttribute('data-edit-url');
+            
+            // Populate modal with task data
+            document.getElementById('taskDetailModalLabel').textContent = `Task #${taskId}`;
+            document.getElementById('taskDetailTitle').textContent = taskTitle;
+            document.getElementById('taskDetailDescription').textContent = taskDescription;
+            document.getElementById('taskDetailNotes').textContent = taskNotes;
+            
+            // Set status badge
+            const statusBadge = document.getElementById('taskDetailStatus');
+            statusBadge.textContent = taskStatusDisplay;
+            statusBadge.className = `task-detail-badge task-status status-${taskStatus}`;
+            
+            // Set assignee info
+            document.getElementById('taskDetailAssignee').textContent = taskAssignedTo;
+            document.getElementById('taskDetailAssigneeImg').src = 
+                `https://ui-avatars.com/api/?name=${taskAssignedTo}&background=random`;
+            
+            // Set creator info
+            document.getElementById('taskDetailCreator').textContent = taskCreatedBy;
+            document.getElementById('taskDetailCreatorImg').src = 
+                `https://ui-avatars.com/api/?name=${taskCreatedBy}&background=random`;
+            
+            // Set dates
+            document.getElementById('taskDetailCreated').textContent = taskCreated;
+            document.getElementById('taskDetailDue').textContent = 
+                taskDue + (isOverdue ? ' (Overdue)' : '');
+            
+            // Set rating
+            const ratingContainer = document.getElementById('taskDetailRating');
+            ratingContainer.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = i <= taskRating ? 'fas fa-star star-filled' : 'far fa-star star-empty';
+                ratingContainer.appendChild(star);
+            }
+            if (taskRating === 0) {
+                ratingContainer.innerHTML = '<span class="text-muted">Not rated yet</span>';
+            }
+            
+            // Set edit button URL
+            document.getElementById('taskDetailEditBtn').href = editUrl;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+            modal.show();
+        });
+    });
+});
+</script>
 {% endblock %}

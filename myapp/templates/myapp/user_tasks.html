@@ -63,7 +63,111 @@
     .task-due.overdue {
         color: #e74a3b;
     }
+    
+    /* Modal styles */
+    .task-detail-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    
+    .task-detail-badge {
+        font-size: 0.9rem;
+    }
+    
+    .task-detail-value {
+        font-weight: 500;
+    }
+    
+    .star-filled {
+        color: #f1c40f;
+    }
+    
+    .star-empty {
+        color: #bdc3c7;
+    }
+    
+    .btn-expired {
+        background-color: #e74a3b;
+        color: white;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    .btn-expired:hover {
+        background-color: #e74a3b;
+        color: white;
+    }
 </style>
+
+<!-- Task Detail Modal -->
+<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="taskDetailModalLabel">Task Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4 id="taskDetailTitle" class="mb-3"></h4>
+                        <p id="taskDetailDescription" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex justify-content-end">
+                            <span id="taskDetailStatus" class="task-detail-badge"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Assigned To</h6>
+                            <div class="d-flex align-items-center">
+                                <img id="taskDetailAssigneeImg" src="" class="task-detail-img me-3" alt="Assignee">
+                                <span id="taskDetailAssignee" class="task-detail-value"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Created On</h6>
+                            <p id="taskDetailCreated" class="task-detail-value"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Due Date</h6>
+                            <p id="taskDetailDue" class="task-detail-value"></p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">Rating</h6>
+                            <div id="taskDetailRating" class="task-detail-value">
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                                <i class="far fa-star star-empty"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="taskDetailStartBtn" href="#" class="btn btn-primary">
+                    <i class="fas fa-play me-1"></i> Start Task
+                </a>
+                <a id="taskDetailCompleteBtn" href="#" class="btn btn-success">
+                    <i class="fas fa-check me-1"></i> Complete Task
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -75,11 +179,15 @@
                     <i class="fas fa-filter fa-sm"></i> Filter
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-                    <li><a class="dropdown-item" href="?status=all">All Tasks</a></li>
+                    <li><a class="dropdown-item {% if status_filter == 'all' or not status_filter %}active{% endif %}" 
+                          href="?status=all">All Tasks</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="?status=pending">Pending</a></li>
-                    <li><a class="dropdown-item" href="?status=in_progress">In Progress</a></li>
-                    <li><a class="dropdown-item" href="?status=completed">Completed</a></li>
+                    <li><a class="dropdown-item {% if status_filter == 'pending' %}active{% endif %}" 
+                          href="?status=pending">Pending</a></li>
+                    <li><a class="dropdown-item {% if status_filter == 'in_progress' %}active{% endif %}" 
+                          href="?status=in_progress">In Progress</a></li>
+                    <li><a class="dropdown-item {% if status_filter == 'completed' %}active{% endif %}" 
+                          href="?status=completed">Completed</a></li>
                 </ul>
             </div>
         </div>
@@ -173,18 +281,36 @@
                         
                         <div class="task-actions">
                             {% if task.status == 'pending' %}
-                            <a href="{% url 'start_task' task.id %}" class="btn btn-sm btn-primary">
-                                <i class="fas fa-play me-1"></i> Start
-                            </a>
+                                {% if task.is_overdue %}
+                                <button class="btn btn-sm btn-expired" disabled>
+                                    <i class="fas fa-ban me-1"></i> Expired
+                                </button>
+                                {% else %}
+                                <a href="{% url 'start_task' task.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-play me-1"></i> Start
+                                </a>
+                                {% endif %}
                             {% elif task.status == 'in_progress' %}
                             <a href="{% url 'complete_task' task.id %}" class="btn btn-sm btn-success">
                                 <i class="fas fa-check me-1"></i> Complete
                             </a>
                             {% endif %}
                             
-                            <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-info">
+                            <button class="btn btn-sm btn-info view-task-btn" 
+                                    data-task-id="{{ task.id }}"
+                                    data-task-title="{{ task.title }}"
+                                    data-task-description="{{ task.description }}"
+                                    data-task-status="{{ task.status }}"
+                                    data-task-status-display="{{ task.get_status_display }}"
+                                    data-task-assigned-to="{{ task.assigned_to.username }}"
+                                    data-task-created="{{ task.created_at|date:'M d, Y H:i' }}"
+                                    data-task-due="{{ task.due_date|date:'M d, Y H:i' }}"
+                                    data-task-rating="{{ task.rating|default:0 }}"
+                                    data-task-is-overdue="{% if task.is_overdue %}true{% else %}false{% endif %}"
+                                    data-start-url="{% url 'start_task' task.id %}"
+                                    data-complete-url="{% url 'complete_task' task.id %}">
                                 <i class="fas fa-eye me-1"></i> View
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -199,4 +325,103 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle view button clicks
+    document.querySelectorAll('.view-task-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Get all task data from data attributes
+            const taskId = this.getAttribute('data-task-id');
+            const taskTitle = this.getAttribute('data-task-title');
+            const taskDescription = this.getAttribute('data-task-description');
+            const taskStatus = this.getAttribute('data-task-status');
+            const taskStatusDisplay = this.getAttribute('data-task-status-display');
+            const taskAssignedTo = this.getAttribute('data-task-assigned-to');
+            const taskCreated = this.getAttribute('data-task-created');
+            const taskDue = this.getAttribute('data-task-due');
+            const taskRating = parseInt(this.getAttribute('data-task-rating'));
+            const isOverdue = this.getAttribute('data-task-is-overdue') === 'true';
+            const startUrl = this.getAttribute('data-start-url');
+            const completeUrl = this.getAttribute('data-complete-url');
+            
+            // Convert due date string to Date object
+            const dueDate = new Date(taskDue);
+            const now = new Date();
+            const isExpired = dueDate < now;
+            
+            // Populate modal with task data
+            document.getElementById('taskDetailModalLabel').textContent = `Task #${taskId}`;
+            document.getElementById('taskDetailTitle').textContent = taskTitle;
+            document.getElementById('taskDetailDescription').textContent = taskDescription;
+            
+            // Set status badge
+            const statusBadge = document.getElementById('taskDetailStatus');
+            statusBadge.textContent = taskStatusDisplay;
+            statusBadge.className = `task-detail-badge task-status status-${taskStatus}`;
+            
+            // Set assignee info
+            document.getElementById('taskDetailAssignee').textContent = taskAssignedTo;
+            document.getElementById('taskDetailAssigneeImg').src = 
+                `https://ui-avatars.com/api/?name=${taskAssignedTo}&background=random`;
+            
+            // Set dates
+            document.getElementById('taskDetailCreated').textContent = taskCreated;
+            document.getElementById('taskDetailDue').textContent = 
+                taskDue + (isOverdue ? ' (Overdue)' : '');
+            
+            // Set rating
+            const ratingContainer = document.getElementById('taskDetailRating');
+            ratingContainer.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = i <= taskRating ? 'fas fa-star star-filled' : 'far fa-star star-empty';
+                ratingContainer.appendChild(star);
+            }
+            if (taskRating === 0) {
+                ratingContainer.innerHTML = '<span class="text-muted">Not rated yet</span>';
+            }
+            
+            // Set action buttons
+            const startBtn = document.getElementById('taskDetailStartBtn');
+            const completeBtn = document.getElementById('taskDetailCompleteBtn');
+            
+            // Hide both buttons by default
+            startBtn.style.display = 'none';
+            completeBtn.style.display = 'none';
+            
+            // Handle expired tasks
+            if (isExpired && taskStatus === 'pending') {
+                startBtn.innerHTML = '<i class="fas fa-ban me-1"></i> Task Expired';
+                startBtn.className = 'btn btn-expired';
+                startBtn.style.display = 'inline-block';
+                startBtn.href = '#';
+                startBtn.onclick = function(e) {
+                    e.preventDefault();
+                    return false;
+                };
+            } 
+            // Handle active tasks
+            else {
+                if (taskStatus === 'pending') {
+                    startBtn.innerHTML = '<i class="fas fa-play me-1"></i> Start Task';
+                    startBtn.className = 'btn btn-primary';
+                    startBtn.href = startUrl;
+                    startBtn.style.display = 'inline-block';
+                    startBtn.onclick = null;
+                } else if (taskStatus === 'in_progress') {
+                    completeBtn.innerHTML = '<i class="fas fa-check me-1"></i> Complete Task';
+                    completeBtn.className = 'btn btn-success';
+                    completeBtn.href = completeUrl;
+                    completeBtn.style.display = 'inline-block';
+                }
+            }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+            modal.show();
+        });
+    });
+});
+</script>
 {% endblock %}
