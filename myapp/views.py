@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from .forms import *
 from django.contrib import messages
 from django.contrib.humanize.templatetags.humanize import naturaltime
+from django.utils.timesince import timesince
 
 class CustomLoginView(LoginView):
     template_name = 'myapp/login.html'
@@ -39,15 +40,43 @@ def admin_dashboard(request):
     
     # Get top performers with their verified task counts
     top_performers = CustomUser.objects.filter(is_admin=False).annotate(
-        verified_count=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified'))
+        verified_count=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
+        average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
     ).order_by('-points')[:5]
     
-    recent_activities = [
-        "User 'johndoe' completed task 'Update website content'",
-        "You assigned a new task to 'janedoe'",
-        "User 'mikesmith' reached 100 points",
-        "You rated task 'Fix login issue' with 4 stars"
-    ][:5]
+    # Get actual recent activities
+    recent_activities = []
+    
+    # 1. Recently completed tasks
+    recent_completed = Task.objects.filter(status='verified').order_by('-updated_at')[:3]
+    for task in recent_completed:
+        recent_activities.append({
+            'message': f"User '{task.assigned_to.username}' completed task '{task.title}'",
+            'timestamp': f"{timesince(task.updated_at)} ago",
+            'icon': 'fas fa-check-circle'
+        })
+    
+    # 2. Recently assigned tasks
+    recent_assigned = Task.objects.order_by('-created_at')[:2]
+    for task in recent_assigned:
+        recent_activities.append({
+            'message': f"You assigned task '{task.title}' to '{task.assigned_to.username}'",
+            'timestamp': task.created_at,
+            'icon': 'fas fa-tasks'
+        })
+    
+    # 3. Recently rated tasks
+    recent_rated = Task.objects.filter(rating__isnull=False).order_by('-updated_at')[:2]
+    for task in recent_rated:
+        recent_activities.append({
+            'message': f"You rated task '{task.title}' with {task.rating} stars",
+            'timestamp': task.updated_at,
+            'icon': 'fas fa-star'
+        })
+    
+    # Sort all activities by timestamp and take the most recent 5
+    recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
+    recent_activities = recent_activities[:5]
     
     context = {
         'total_tasks': total_tasks,
