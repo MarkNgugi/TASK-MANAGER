@@ -113,6 +113,11 @@ def user_dashboard(request):
     }
     return render(request, 'myapp/user_dashboard.html', context)
 
+def manage_tasks(request):
+    context={}
+    return render(request,'myapp/manage_tasks.html',context)
+
+
 @login_required
 def task_list(request):
     if request.user.is_admin:

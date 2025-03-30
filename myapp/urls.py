@@ -9,6 +9,8 @@ urlpatterns = [
     path('user-dashboard/', user_dashboard, name='user_dashboard'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     
+
+    path('manage-tasks/', manage_tasks, name='managetasks'),
     # Task URLs
     path('tasks/', task_list, name='task_list'),
     path('tasks/create/', create_task, name='create_task'),
