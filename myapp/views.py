@@ -426,28 +426,51 @@ def verify_task(request, pk):
 
 @login_required
 def user_profile(request):
+    # Common form handling for both roles
     if request.method == 'POST':
         if 'profile_form' in request.POST:
             profile_form = UserProfileForm(request.POST, instance=request.user)
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, 'Your profile was successfully updated!')
-                return redirect('user_profile')
+                messages.success(request, 'Profile updated successfully!')
+                return redirect('profile')
         elif 'password_form' in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
-                update_session_auth_hash(request, user)  # Important!
-                messages.success(request, 'Your password was successfully updated!')
-                return redirect('user_profile')
+                update_session_auth_hash(request, user)  # Maintain session
+                messages.success(request, 'Password updated successfully!')
+                return redirect('profile')
     else:
         profile_form = UserProfileForm(instance=request.user)
         password_form = PasswordChangeForm(request.user)
-    
-    return render(request, 'myapp/user_profile.html', {
+
+    # Prepare context with common data
+    context = {
         'profile_form': profile_form,
-        'password_form': password_form
-    })
+        'password_form': password_form,
+    }
+
+    # Add role-specific data
+    if request.user.is_admin:
+        context.update({
+            'user_count': CustomUser.objects.filter(is_admin=False).count(),
+            'task_count': Task.objects.count(),
+            'recent_tasks': Task.objects.order_by('-created_at')[:5],
+            'is_admin': True
+        })
+    else:
+        context.update({
+            'points': request.user.points,
+            'reward_level': f"Level {request.user.rewards // 100 + 1}",
+            'tasks_completed': request.user.assigned_tasks.filter(status='verified').count(),
+            'is_admin': False
+        })
+
+    # Determine template based on role
+    template = 'myapp/admin_profile.html' if request.user.is_admin else 'myapp/user_profile.html'
+    
+    return render(request, template, context)
 
 
 def logout_view(request):

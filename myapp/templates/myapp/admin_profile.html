@@ -1,0 +1,227 @@
+{% extends "myapp/base_admin.html" %}
+{% load static %}
+
+{% block title %}Admin Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm">
+                <!-- Card Header -->
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-lg me-3">
+                            <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=4f46e5&color=fff&size=128" 
+                                 class="rounded-circle border border-3 border-white shadow-sm" 
+                                 alt="Profile" width="64" height="64">
+                        </div>
+                        <div>
+                            <h4 class="mb-0">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                            <p class="text-muted mb-0">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Profile Update Form -->
+                    <div class="mb-5">
+                        <h5 class="mb-4 text-primary">Personal Information</h5>
+                        <form method="post" name="profile_form" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="profile_form" value="1">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">First Name</label>
+                                        {{ profile_form.first_name }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">Last Name</label>
+                                        {{ profile_form.last_name }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">Username</label>
+                                        {{ profile_form.username }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">Email</label>
+                                        {{ profile_form.email }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary px-4 py-2">
+                                    Update Profile
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Password Change Form -->
+                    <div class="mb-5">
+                        <h5 class="mb-4 text-primary">Security Settings</h5>
+                        <form method="post" name="password_form" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="password_form" value="1">
+                            
+                            <div class="form-group mb-4">
+                                <label class="form-label">Current Password</label>
+                                {{ password_form.old_password }}
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">New Password</label>
+                                        {{ password_form.new_password1 }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-4">
+                                        <label class="form-label">Confirm Password</label>
+                                        {{ password_form.new_password2 }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary px-4 py-2">
+                                    Change Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Admin Statistics -->
+                    <div class="border-top pt-4">
+                        <h5 class="mb-4 text-primary">Administration Overview</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                                <i class="fas fa-users-cog text-primary fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-muted mb-1">Users Managed</p>
+                                                <h3 class="mb-0">{{ user_count }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
+                                                <i class="fas fa-tasks text-warning fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-muted mb-1">Tasks Managed</p>
+                                                <h3 class="mb-0">{{ task_count }}</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8fafc;
+    }
+    
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background-color: #fff;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #334155;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 10px 15px;
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+    
+    .btn-primary {
+        background-color: #4f46e5;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-primary:hover {
+        background-color: #4338ca;
+        transform: translateY(-1px);
+    }
+    
+    .avatar-lg {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .text-primary {
+        color: #4f46e5 !important;
+    }
+    
+    .bg-opacity-10 {
+        opacity: 0.1;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}

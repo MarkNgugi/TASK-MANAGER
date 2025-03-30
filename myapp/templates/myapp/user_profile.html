@@ -4,121 +4,134 @@
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-0 py-3">
-                    <h4 class="mb-0">
-                        <i class="fas fa-user-circle me-2 text-primary"></i>
-                        My Profile
-                    </h4>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Profile Header -->
+            <div class="text-center mb-5">
+                <div class="avatar-xxl position-relative mx-auto mb-3">
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=4f46e5&color=fff&size=128" 
+                         class="rounded-circle border border-4 border-white shadow" 
+                         alt="Profile" width="128" height="128">
                 </div>
-                
-                <div class="card-body">
-                    <!-- Profile Update Form -->
-                    <div class="mb-5">
-                        <h5 class="mb-3 border-bottom pb-2">
-                            <i class="fas fa-user-edit me-2"></i>Personal Information
-                        </h5>
-                        <form method="post" name="profile_form">
-                            {% csrf_token %}
-                            <input type="hidden" name="profile_form" value="1">
-                            
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">First Name</label>
-                                    {{ profile_form.first_name }}
+                <h2 class="mb-1">{{ request.user.get_full_name|default:request.user.username }}</h2>
+                <p class="text-muted mb-2">@{{ request.user.username }}</p>
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10">
+                    Level {{ request.user.rewards }}
+                </span>
+            </div>
+
+            <div class="row g-4">
+                <!-- Left Column -->
+                <div class="col-lg-8">
+                    <!-- Personal Info Card -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h5 class="mb-0">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" name="profile_form" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                <input type="hidden" name="profile_form" value="1">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label">First Name</label>
+                                            {{ profile_form.first_name }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label">Last Name</label>
+                                            {{ profile_form.last_name }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label">Username</label>
+                                            {{ profile_form.username }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label">Email</label>
+                                            {{ profile_form.email }}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Last Name</label>
-                                    {{ profile_form.last_name }}
+                                
+                                <div class="d-flex justify-content-end mt-2">
+                                    <button type="submit" class="btn btn-primary px-4 py-2">
+                                        Save Changes
+                                    </button>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Username</label>
-                                    {{ profile_form.username }}
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Email *</label>
-                                    {{ profile_form.email }}
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="fas fa-save me-2"></i>Update Profile
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                     
-                    <!-- Password Change Form -->
-                    <div class="mb-4">
-                        <h5 class="mb-3 border-bottom pb-2">
-                            <i class="fas fa-lock me-2"></i>Change Password
-                        </h5>
-                        <form method="post" name="password_form">
-                            {% csrf_token %}
-                            <input type="hidden" name="password_form" value="1">
-                            
-                            <div class="row g-3">
-                                <div class="col-12">
+                    <!-- Password Card -->
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h5 class="mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" name="password_form" class="needs-validation" novalidate>
+                                {% csrf_token %}
+                                <input type="hidden" name="password_form" value="1">
+                                
+                                <div class="form-group mb-4">
                                     <label class="form-label">Current Password</label>
                                     {{ password_form.old_password }}
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">New Password</label>
-                                    {{ password_form.new_password1 }}
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label">New Password</label>
+                                            {{ password_form.new_password1 }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label class="form-label">Confirm Password</label>
+                                            {{ password_form.new_password2 }}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Confirm New Password</label>
-                                    {{ password_form.new_password2 }}
+                                
+                                <div class="d-flex justify-content-end mt-2">
+                                    <button type="submit" class="btn btn-primary px-4 py-2">
+                                        Update Password
+                                    </button>
                                 </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="col-lg-4">
+                    <!-- Stats Card -->
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h5 class="mb-0">Your Stats</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4 p-3">
+                                <h3 class="mb-1">{{ request.user.points }}</h3>
+                                <p class="text-muted mb-3">Points Earned</p>
+                                
+                                <div class="progress bg-light mb-3" style="height: 8px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" 
+                                         style="width: {{ progress }}%;"></div>
+                                </div>
+                                <p class="small text-muted">{{ points_needed }} points to next level</p>
                             </div>
                             
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit" class="btn btn-primary px-4">
-                                    <i class="fas fa-key me-2"></i>Change Password
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <!-- Account Stats -->
-                    <div class="border-top pt-4">
-                        <h5 class="mb-3">
-                            <i class="fas fa-chart-line me-2"></i>Account Statistics
-                        </h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="card bg-light border-0 h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="icon-circle bg-primary text-white me-3">
-                                                <i class="fas fa-trophy"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-1">Total Points</h6>
-                                                <h4 class="mb-0">{{ request.user.points }}</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="card bg-light border-0 h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="icon-circle bg-success text-white me-3">
-                                                <i class="fas fa-medal"></i>
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-1">Reward Level</h6>
-                                                <h4 class="mb-0">Level {{ request.user.rewards }}</h4>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="text-center p-3 border-top">
+                                <h3 class="mb-1">{{ completed_count }}</h3>
+                                <p class="text-muted">Tasks Completed</p>
                             </div>
                         </div>
                     </div>
@@ -131,50 +144,76 @@
 
 {% block extra_css %}
 <style>
+    body {
+        background-color: #f8fafc;
+    }
+    
     .card {
         border-radius: 10px;
+        border: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
     }
     
     .card-header {
-        background-color: #f8f9fa;
-    }
-    
-    .form-control, .form-select {
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 10px 15px;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        background-color: transparent;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
     }
     
     .form-label {
         font-weight: 500;
-        color: #4a5568;
+        color: #334155;
         margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-control {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+    
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
     
     .btn-primary {
         background-color: #4f46e5;
         border: none;
-        padding: 10px 20px;
+        padding: 10px 24px;
         border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
     }
     
-    .icon-circle {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
+    .btn-primary:hover {
+        background-color: #4338ca;
+        transform: translateY(-1px);
     }
     
-    .border-bottom {
-        border-bottom: 2px solid #e2e8f0 !important;
+    .progress {
+        border-radius: 100px;
+        background-color: #f1f5f9;
+    }
+    
+    .badge {
+        padding: 6px 12px;
+        border-radius: 100px;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+    
+    .avatar-xxl {
+        width: 128px;
+        height: 128px;
     }
 </style>
 {% endblock %}
@@ -182,30 +221,16 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Add form validation
-        const forms = document.querySelectorAll('form');
-        forms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                if (!this.checkValidity()) {
-                    e.preventDefault();
-                    e.stopPropagation();
+        // Basic form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
                 }
-                this.classList.add('was-validated');
+                form.classList.add('was-validated');
             }, false);
-        });
-        
-        // Show password requirements
-        const passwordFields = document.querySelectorAll('input[type="password"]');
-        passwordFields.forEach(field => {
-            field.addEventListener('focus', function() {
-                const helpText = this.parentElement.querySelector('.form-text');
-                if (helpText) helpText.style.display = 'block';
-            });
-            
-            field.addEventListener('blur', function() {
-                const helpText = this.parentElement.querySelector('.form-text');
-                if (helpText) helpText.style.display = 'none';
-            });
         });
     });
 </script>

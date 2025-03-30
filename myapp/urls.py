@@ -31,5 +31,6 @@ urlpatterns = [
     path('user-leaderboard/', user_leaderboard, name='userleaderboard'),
     path('leaderboard/', leaderboard, name='leaderboard'),
     path('profile/', user_profile, name='user_profile'),
+    path('admin/profile/', user_profile, name='admin_profile'),
     
 ]

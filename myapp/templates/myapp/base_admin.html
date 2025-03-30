@@ -58,11 +58,19 @@
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>                            
+                            <li>
+                                <a class="dropdown-item {% if request.path == '/profile/' %}active{% endif %}" 
+                                   href="{% url 'user_profile' %}">
+                                    <i class="fas fa-{% if request.user.is_admin %}user-shield{% else %}user-circle{% endif %} me-2"></i>
+                                    My Profile
+                                </a>
+                            </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Logout
-                            </a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
