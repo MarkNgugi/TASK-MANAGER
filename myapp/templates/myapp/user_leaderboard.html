@@ -6,116 +6,296 @@
 {% block content %}
 <style>
     .leaderboard-container {
-        max-width: 800px;
-        margin: 0 auto;
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+    }
+    
+    .leaderboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .leaderboard-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0;
+    }
+    
+    .user-rank-badge {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.5rem 1.25rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     
     .leaderboard-card {
-        border-radius: 0.75rem;
-        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(0, 0, 0, 0.05);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        overflow: hidden;
+    }
+    
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    
+    .leaderboard-table thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .leaderboard-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    
+    .leaderboard-table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+    
+    .leaderboard-table tbody tr.your-position {
+        background: linear-gradient(90deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.05));
+        position: relative;
+    }
+    
+    .leaderboard-table tbody tr.your-position:after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: linear-gradient(to bottom, #667eea, #764ba2);
+    }
+    
+    .leaderboard-table td {
+        padding: 1.25rem 1.5rem;
+        color: #2d3748;
+        font-weight: 500;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
     }
     
     .rank-badge {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 50%;
-        font-weight: 600;
+        border-radius: 8px;
+        font-weight: 700;
     }
     
     .rank-1 {
-        background-color: #FFD700;
-        color: #000;
+        background: linear-gradient(135deg, #f6ad55, #f56565);
+        color: white;
+        box-shadow: 0 4px 6px rgba(245, 101, 101, 0.2);
     }
     
     .rank-2 {
-        background-color: #C0C0C0;
-        color: #000;
+        background: linear-gradient(135deg, #a0aec0, #718096);
+        color: white;
+        box-shadow: 0 4px 6px rgba(113, 128, 150, 0.2);
     }
     
     .rank-3 {
-        background-color: #CD7F32;
-        color: #000;
+        background: linear-gradient(135deg, #ed8936, #dd6b20);
+        color: white;
+        box-shadow: 0 4px 6px rgba(221, 107, 32, 0.2);
     }
     
-    .your-position {
-        background-color: rgba(78, 115, 223, 0.1);
+    .rank-4plus {
+        background-color: #f8fafc;
+        color: #64748b;
     }
     
-    .avatar-xs {
-        width: 32px;
-        height: 32px;
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-info {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .username {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.25rem;
+    }
+    
+    .user-badges {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .badge-top {
+        background: linear-gradient(135deg, #f6ad55, #f56565);
+        color: white;
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50px;
+        font-weight: 700;
+    }
+    
+    .badge-you {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 50px;
+        font-weight: 700;
+    }
+    
+    .points-cell {
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    .rating-stars {
+        display: flex;
+        gap: 2px;
+    }
+    
+    .rating-stars i {
+        font-size: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+        .leaderboard-container {
+            padding: 0 1rem;
+        }
+        
+        .leaderboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .leaderboard-table thead {
+            display: none;
+        }
+        
+        .leaderboard-table tr {
+            display: block;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .leaderboard-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border: none;
+        }
+        
+        .leaderboard-table td:before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #64748b;
+            margin-right: 1rem;
+            font-size: 0.8rem;
+        }
+        
+        .user-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
     }
 </style>
 
 <div class="leaderboard-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Leaderboard</h1>
-        <div class="badge bg-primary">
+    <div class="leaderboard-header">
+        <h1 class="leaderboard-title">Leaderboard</h1>
+        <div class="user-rank-badge">
             Your Rank: {% if user_position %}#{{ user_position }}{% else %}Not ranked{% endif %}
         </div>
     </div>
 
-    <div class="card leaderboard-card mb-4">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Rank</th>
-                            <th>User</th>
-                            <th>Points</th>
-                            <th>Completed</th>
-                            <th>Rating</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in leaderboard_users %}
-                        <tr {% if user == request.user %}class="your-position"{% endif %}>
-                            <td>
-                                <div class="rank-badge rank-{{ forloop.counter }}">
-                                    {{ forloop.counter }}
+    <div class="leaderboard-card">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Rank</th>
+                    <th>User</th>
+                    <th style="width: 100px;">Points</th>
+                    <th style="width: 120px;">Completed</th>
+                    <th style="width: 140px;">Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in leaderboard_users %}
+                <tr {% if user == request.user %}class="your-position"{% endif %}>
+                    <td data-label="Rank">
+                        <div class="rank-badge {% if forloop.counter <= 3 %}rank-{{ forloop.counter }}{% else %}rank-4plus{% endif %}">
+                            {{ forloop.counter }}
+                        </div>
+                    </td>
+                    <td data-label="User">
+                        <div class="user-cell">
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&color=fff&bold=true" 
+                                 class="user-avatar" alt="{{ user.username }}">
+                            <div class="user-info">
+                                <span class="username">{{ user.username }}</span>
+                                <div class="user-badges">
+                                    {% if forloop.counter <= 3 %}
+                                    <span class="badge-top">Top {{ forloop.counter }}</span>
+                                    {% endif %}
+                                    {% if user == request.user %}
+                                    <span class="badge-you">You</span>
+                                    {% endif %}
                                 </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-shrink-0">
-                                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" 
-                                             class="avatar-xs rounded-circle" alt="{{ user.username }}">
-                                    </div>
-                                    <div class="flex-grow-1 ms-2">
-                                        {{ user.username }}
-                                        {% if forloop.counter <= 3 %}
-                                        <span class="badge bg-warning text-dark ms-1">Top {{ forloop.counter }}</span>
-                                        {% endif %}
-                                        {% if user == request.user %}
-                                        <span class="badge bg-primary ms-1">You</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ user.points }}</td>
-                            <td>{{ user.completed_tasks }}</td>
-                            <td>
-                                <div class="rating">
-                                    {% for i in "12345" %}
-                                        {% if i|add:0 <= user.average_rating %}
-                                            <i class="fas fa-star text-warning"></i>
-                                        {% else %}
-                                            <i class="far fa-star text-warning"></i>
-                                        {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="Points" class="points-cell">{{ user.points }}</td>
+                    <td data-label="Completed">{{ user.completed_tasks }}</td>
+                    <td data-label="Rating">
+                        <div class="rating-stars">
+                            {% for i in "12345" %}
+                                {% if i|add:0 <= user.average_rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

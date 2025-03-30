@@ -318,9 +318,20 @@ def user_leaderboard(request):
     }
     return render(request, 'myapp/user_leaderboard.html', context)
 
+
 def leaderboard(request):
-    context={}
-    return render(request,'myapp/leaderboard.html',context)
+    # Get all non-admin users with their points, completed tasks, and average rating
+    leaderboard_users = CustomUser.objects.filter(is_admin=False)\
+        .annotate(
+            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
+            average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
+        )\
+        .order_by('-points')
+    
+    context = {
+        'leaderboard': leaderboard_users,  # Changed to match template variable
+    }
+    return render(request, 'myapp/leaderboard.html', context)
 
 
 @login_required
