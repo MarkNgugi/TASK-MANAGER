@@ -113,6 +113,16 @@
         .animate-form {
             animation: fadeInUp 0.6s ease-out;
         }
+        
+        /* Error message styling */
+        .alert-danger {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+        }
     </style>
 </head>
 <body>
@@ -122,10 +132,16 @@
             <p>Sign in to access your account</p>
         </div>
         
+        {% if form.errors %}
+        <div class="alert alert-danger animate__animated animate__shakeX" role="alert">
+            Invalid username or password. Please try again.
+        </div>
+        {% endif %}
+        
         <form method="post" class="animate-form">
             {% csrf_token %}
             <div class="form-group">
-                <label for="id_username" class="form-label">Username or Email</label>
+                <label for="id_username" class="form-label">Username</label>
                 <input type="text" name="username" id="id_username" class="form-control" placeholder="Enter your username or email" required>
             </div>
             
@@ -134,17 +150,11 @@
                 <input type="password" name="password" id="id_password" class="form-control" placeholder="Enter your password" required>
             </div>
             
-            <div class="form-group form-check">
-                <input type="checkbox" class="form-check-input" id="rememberMe">
-                <label class="form-check-label" for="rememberMe">Remember me</label>
-                <a href="#" style="float: right; color: var(--primary); font-size: 0.85rem;">Forgot password?</a>
-            </div>
-            
             <button type="submit" class="btn btn-login mt-3">Sign In</button>
         </form>
         
         <div class="form-footer">
-            Don't have an account? <a href="#">Sign up</a>
+            <p>Don't have an account? <a href="#">Register here</a></p>
         </div>
     </div>
 

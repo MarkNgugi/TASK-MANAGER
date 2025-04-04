@@ -25,6 +25,9 @@ urlpatterns = [
 
 
     path('users/', users, name='users'),
+    path('users/edit/<int:user_id>/', edit_user, name='edit_user'),
+    path('users/delete/<int:user_id>/', delete_user, name='delete_user'),
+    path('users/reset-password/<int:user_id>/', reset_password, name='reset_password'),
 
     
     # Leaderboard

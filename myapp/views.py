@@ -10,14 +10,22 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.utils.timesince import timesince
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import get_user_model
+from django.contrib.auth.hashers import make_password
 
 class CustomLoginView(LoginView):
     template_name = 'myapp/login.html'
+    
+    def form_invalid(self, form):
+        """Handle invalid form submissions with error message."""
+        messages.error(self.request, 'Invalid username or password. Please try again.')
+        return super().form_invalid(form)
 
     def get_success_url(self):
+        """Redirect users based on their role after successful login."""
         user = self.request.user
         if user.is_authenticated:
-            if user.is_superuser or user.is_admin:
+            if user.is_superuser or user.is_staff:  # Changed from is_admin to is_staff for Django's default
                 return reverse_lazy('admin_dashboard')
         return reverse_lazy('user_dashboard')
 
@@ -27,7 +35,6 @@ def redirect_view(request):
         return redirect('admin_dashboard')
     return redirect('user_dashboard')
 
-# Keep only ONE version of each dashboard view (the detailed ones):
 
 @login_required
 def admin_dashboard(request):
@@ -39,7 +46,7 @@ def admin_dashboard(request):
     pending_tasks = Task.objects.filter(status='pending').count()
     in_progress = Task.objects.filter(status='in_progress').count()
     active_users = CustomUser.objects.filter(is_admin=False).count()
-    completed_tasks = Task.objects.filter(status='verified').count()
+    completed_tasks = Task.objects.filter(status='completed').count()
     
     # Get top performers with their verified task counts
     top_performers = CustomUser.objects.filter(is_admin=False).annotate(
@@ -258,6 +265,8 @@ def delete_task(request, task_id):
         return redirect('managetasks')
     return redirect('managetasks')
 
+
+CustomUser = get_user_model()
 @login_required
 def users(request):
     if not request.user.is_admin:
@@ -281,21 +290,75 @@ def users(request):
             status='pending'
         ).count()
     
+    # Initialize form outside of POST check
+    form = CustomUserCreationForm()
+    
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password('default123')  # Set default password
             user.save()
+            messages.success(request, f"User {user.username} created successfully!")
             return redirect('users')
-    else:
-        form = CustomUserCreationForm()
     
     context = {
         'users': users,
         'form': form
     }
     return render(request, 'myapp/users.html', context)
+
+def edit_user(request, user_id):
+    if not request.user.is_admin:
+        return redirect('user_dashboard')
+    
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if request.method == 'POST':
+        form = CustomUserChangeForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'User {user.username} updated successfully!')
+            return redirect('users')
+    else:
+        form = CustomUserChangeForm(instance=user)
+    
+    return render(request, 'myapp/edit_user.html', {
+        'form': form,
+        'user': user
+    })
+
+def delete_user(request, user_id):
+    if not request.user.is_admin:
+        return redirect('user_dashboard')
+    
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f'User {username} deleted successfully!')
+        return redirect('users')
+    
+    return render(request, 'myapp/confirm_delete.html', {
+        'user': user
+    })
+
+def reset_password(request, user_id):
+    if not request.user.is_admin:
+        return redirect('user_dashboard')
+    
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    if request.method == 'POST':
+        user.password = make_password('default123')
+        user.save()
+        messages.success(request, f'Password for {user.username} has been reset to default!')
+        return redirect('users')
+    
+    return render(request, 'myapp/confirm_reset.html', {
+        'user': user
+    })
 
 @login_required
 def user_tasks(request):
@@ -433,22 +496,31 @@ def user_profile(request):
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Profile updated successfully!')
-                return redirect('profile')
+                return redirect('user_profile')  # Changed from 'profile' to 'user_profile'
         elif 'password_form' in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
                 update_session_auth_hash(request, user)  # Maintain session
                 messages.success(request, 'Password updated successfully!')
-                return redirect('profile')
+                return redirect('user_profile')  # Changed from 'profile' to 'user_profile'
     else:
         profile_form = UserProfileForm(instance=request.user)
         password_form = PasswordChangeForm(request.user)
 
-    # Prepare context with common data
+    # Calculate progress for level
+    completed_count = request.user.assigned_tasks.filter(status='verified').count()
+    current_level = request.user.rewards // 100
+    next_level_points = (current_level + 1) * 100
+    points_needed = max(0, next_level_points - request.user.points)
+    progress = (request.user.points % 100) if current_level > 0 else request.user.points
+
     context = {
         'profile_form': profile_form,
         'password_form': password_form,
+        'completed_count': completed_count,
+        'progress': progress,
+        'points_needed': points_needed,
     }
 
     # Add role-specific data
@@ -463,13 +535,10 @@ def user_profile(request):
         context.update({
             'points': request.user.points,
             'reward_level': f"Level {request.user.rewards // 100 + 1}",
-            'tasks_completed': request.user.assigned_tasks.filter(status='verified').count(),
             'is_admin': False
         })
 
-    # Determine template based on role
     template = 'myapp/admin_profile.html' if request.user.is_admin else 'myapp/user_profile.html'
-    
     return render(request, template, context)
 
 

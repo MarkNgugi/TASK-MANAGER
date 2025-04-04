@@ -3,6 +3,9 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import *
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import get_user_model
+
+CustomUser = get_user_model()
 
 class UserProfileForm(forms.ModelForm):
     class Meta:
@@ -12,6 +15,17 @@ class UserProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].required = True
+
+
+class CustomUserChangeForm(UserProfileForm):
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'is_admin', 'points', 'rewards')
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove the password field
+        self.fields.pop('password', None)        
 
 class TaskForm(forms.ModelForm):
     class Meta:

@@ -5,6 +5,20 @@
 
 {% block content %}
 <div class="container py-5">
+    <!-- Messages Display -->
+    {% if messages %}
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <!-- Profile Header -->
@@ -17,7 +31,7 @@
                 <h2 class="mb-1">{{ request.user.get_full_name|default:request.user.username }}</h2>
                 <p class="text-muted mb-2">@{{ request.user.username }}</p>
                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10">
-                    Level {{ request.user.rewards }}
+                    Level {{ request.user.rewards|default:0 }}
                 </span>
             </div>
 
@@ -39,31 +53,43 @@
                                         <div class="form-group mb-4">
                                             <label class="form-label">First Name</label>
                                             {{ profile_form.first_name }}
+                                            {% if profile_form.first_name.errors %}
+                                                <div class="text-danger small mt-1">{{ profile_form.first_name.errors }}</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
                                             <label class="form-label">Last Name</label>
                                             {{ profile_form.last_name }}
+                                            {% if profile_form.last_name.errors %}
+                                                <div class="text-danger small mt-1">{{ profile_form.last_name.errors }}</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
                                             <label class="form-label">Username</label>
                                             {{ profile_form.username }}
+                                            {% if profile_form.username.errors %}
+                                                <div class="text-danger small mt-1">{{ profile_form.username.errors }}</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
                                             <label class="form-label">Email</label>
                                             {{ profile_form.email }}
+                                            {% if profile_form.email.errors %}
+                                                <div class="text-danger small mt-1">{{ profile_form.email.errors }}</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="d-flex justify-content-end mt-2">
                                     <button type="submit" class="btn btn-primary px-4 py-2">
-                                        Save Changes
+                                        <i class="fas fa-save me-2"></i>Save Changes
                                     </button>
                                 </div>
                             </form>
@@ -83,6 +109,9 @@
                                 <div class="form-group mb-4">
                                     <label class="form-label">Current Password</label>
                                     {{ password_form.old_password }}
+                                    {% if password_form.old_password.errors %}
+                                        <div class="text-danger small mt-1">{{ password_form.old_password.errors }}</div>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="row g-3">
@@ -90,19 +119,25 @@
                                         <div class="form-group mb-4">
                                             <label class="form-label">New Password</label>
                                             {{ password_form.new_password1 }}
+                                            {% if password_form.new_password1.errors %}
+                                                <div class="text-danger small mt-1">{{ password_form.new_password1.errors }}</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
                                             <label class="form-label">Confirm Password</label>
                                             {{ password_form.new_password2 }}
+                                            {% if password_form.new_password2.errors %}
+                                                <div class="text-danger small mt-1">{{ password_form.new_password2.errors }}</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="d-flex justify-content-end mt-2">
                                     <button type="submit" class="btn btn-primary px-4 py-2">
-                                        Update Password
+                                        <i class="fas fa-key me-2"></i>Update Password
                                     </button>
                                 </div>
                             </form>
@@ -119,18 +154,18 @@
                         </div>
                         <div class="card-body">
                             <div class="text-center mb-4 p-3">
-                                <h3 class="mb-1">{{ request.user.points }}</h3>
+                                <h3 class="mb-1">{{ request.user.points|default:0 }}</h3>
                                 <p class="text-muted mb-3">Points Earned</p>
                                 
                                 <div class="progress bg-light mb-3" style="height: 8px;">
                                     <div class="progress-bar bg-primary" role="progressbar" 
-                                         style="width: {{ progress }}%;"></div>
+                                         style="width: {{ progress|default:0 }}%;"></div>
                                 </div>
-                                <p class="small text-muted">{{ points_needed }} points to next level</p>
+                                <p class="small text-muted">{{ points_needed|default:0 }} points to next level</p>
                             </div>
                             
                             <div class="text-center p-3 border-top">
-                                <h3 class="mb-1">{{ completed_count }}</h3>
+                                <h3 class="mb-1">{{ completed_count|default:0 }}</h3>
                                 <p class="text-muted">Tasks Completed</p>
                             </div>
                         </div>
@@ -215,6 +250,10 @@
         width: 128px;
         height: 128px;
     }
+    
+    .alert {
+        border-radius: 8px;
+    }
 </style>
 {% endblock %}
 
@@ -231,6 +270,12 @@
                 }
                 form.classList.add('was-validated');
             }, false);
+        });
+        
+        // Initialize Bootstrap tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     });
 </script>

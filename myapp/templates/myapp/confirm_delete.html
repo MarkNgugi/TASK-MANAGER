@@ -1,0 +1,29 @@
+{% extends "myapp/base_admin.html" %}
+{% load static %}
+
+{% block title %}Delete User{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">Confirm Deletion</h4>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete user <strong>{{ user.username }}</strong>?</p>
+                    <p>This action cannot be undone.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'users' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
