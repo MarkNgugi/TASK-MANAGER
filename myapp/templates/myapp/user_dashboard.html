@@ -160,7 +160,7 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    {% if user_position > 5 %}
+                    {% if user_position and user_position > 5 %}
                     <tr class="table-primary">
                         <td>{{ user_position }}</td>
                         <td>
@@ -176,7 +176,7 @@
                             </div>
                         </td>
                         <td>{{ request.user.points }}</td>
-                        <td>{{ user_completed }}</td>
+                        <td>{{ completed_count }}</td>
                         <td>
                             <div class="rating">
                                 {% for i in "12345" %}

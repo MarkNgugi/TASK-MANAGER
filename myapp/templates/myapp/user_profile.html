@@ -97,52 +97,85 @@
                     </div>
                     
                     <!-- Password Card -->
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-transparent border-bottom py-3">
-                            <h5 class="mb-0">Security Settings</h5>
+<!-- Password Change Form -->
+<div class="mb-5">
+    <h5 class="mb-4 text-primary">Security Settings</h5>
+    
+    <!-- Add this messages section -->
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'Password error' in message.message %}
+            <div class="alert alert-danger alert-dismissible fade show mb-4">
+                {{ message|cut:"Password error: " }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    
+    <form method="post" name="password_form" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="password_form" value="1">
+        
+        <div class="form-group mb-4">
+            <label class="form-label">Current Password</label>
+            {{ password_form.old_password }}
+            {% if password_form.old_password.errors %}
+                <div class="text-danger small mt-1">
+                    {% for error in password_form.old_password.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="form-group mb-4">
+                    <label class="form-label">New Password</label>
+                    {{ password_form.new_password1 }}
+                    {% if password_form.new_password1.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in password_form.new_password1.errors %}
+                                {{ error }}
+                            {% endfor %}
                         </div>
-                        <div class="card-body">
-                            <form method="post" name="password_form" class="needs-validation" novalidate>
-                                {% csrf_token %}
-                                <input type="hidden" name="password_form" value="1">
-                                
-                                <div class="form-group mb-4">
-                                    <label class="form-label">Current Password</label>
-                                    {{ password_form.old_password }}
-                                    {% if password_form.old_password.errors %}
-                                        <div class="text-danger small mt-1">{{ password_form.old_password.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-4">
-                                            <label class="form-label">New Password</label>
-                                            {{ password_form.new_password1 }}
-                                            {% if password_form.new_password1.errors %}
-                                                <div class="text-danger small mt-1">{{ password_form.new_password1.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group mb-4">
-                                            <label class="form-label">Confirm Password</label>
-                                            {{ password_form.new_password2 }}
-                                            {% if password_form.new_password2.errors %}
-                                                <div class="text-danger small mt-1">{{ password_form.new_password2.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex justify-content-end mt-2">
-                                    <button type="submit" class="btn btn-primary px-4 py-2">
-                                        <i class="fas fa-key me-2"></i>Update Password
-                                    </button>
-                                </div>
-                            </form>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-4">
+                    <label class="form-label">Confirm Password</label>
+                    {{ password_form.new_password2 }}
+                    {% if password_form.new_password2.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in password_form.new_password2.errors %}
+                                {{ error }}
+                            {% endfor %}
                         </div>
-                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Password requirements hint -->
+        <div class="alert alert-info bg-light border-0 small">
+            <h6 class="alert-heading">Password Requirements:</h6>
+            <ul class="mb-0">
+                <li>Minimum 8 characters</li>
+                <li>Can't be too similar to your other personal information</li>
+                <li>Can't be a commonly used password</li>
+                <li>Can't be entirely numeric</li>
+            </ul>
+        </div>
+        
+        <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary px-4 py-2">
+                <i class="fas fa-key me-2"></i>Change Password
+            </button>
+        </div>
+    </form>
+</div>
                 </div>
                 
                 <!-- Right Column -->

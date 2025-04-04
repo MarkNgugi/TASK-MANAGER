@@ -146,10 +146,10 @@ def user_dashboard(request):
             {'title': 'Task "Write documentation" assigned', 'date': '3 days ago', 'icon': 'fas fa-tasks'},
         ][:3-len(recent_activities)])
     
-    # Get top performers
+    # Get top performers - UPDATED TO INCLUDE BOTH COMPLETED AND VERIFIED TASKS
     top_performers = CustomUser.objects.filter(is_admin=False)\
         .annotate(
-            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
+            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status__in=['completed', 'verified'])),
             average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
         )\
         .order_by('-points')[:10]
@@ -393,7 +393,7 @@ def user_leaderboard(request):
     # Get all non-admin users with their points, completed tasks, and average rating
     leaderboard_users = CustomUser.objects.filter(is_admin=False)\
         .annotate(
-            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
+            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status__in=['completed', 'verified'])),
             average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
         )\
         .order_by('-points')
@@ -408,24 +408,26 @@ def user_leaderboard(request):
     context = {
         'leaderboard_users': leaderboard_users,
         'user_position': user_position,
-        'user_completed': request.user.assigned_tasks.filter(status='verified').count(),
+        'user_completed': request.user.assigned_tasks.filter(status__in=['completed', 'verified']).count(),
         'user_rating': request.user.assigned_tasks.filter(rating__isnull=False)\
                          .aggregate(avg_rating=Avg('rating'))['avg_rating'] or 0,
     }
     return render(request, 'myapp/user_leaderboard.html', context)
 
 
+from django.db.models import Count, Q, Avg
+
 def leaderboard(request):
-    # Get all non-admin users with their points, completed tasks, and average rating
+    # Get all non-admin users with their points and completed tasks count
     leaderboard_users = CustomUser.objects.filter(is_admin=False)\
         .annotate(
-            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status='verified')),
+            completed_tasks=Count('assigned_tasks', filter=Q(assigned_tasks__status__in=['completed', 'verified'])),
             average_rating=Avg('assigned_tasks__rating', filter=Q(assigned_tasks__rating__isnull=False))
         )\
         .order_by('-points')
     
     context = {
-        'leaderboard': leaderboard_users,  # Changed to match template variable
+        'leaderboard': leaderboard_users,
     }
     return render(request, 'myapp/leaderboard.html', context)
 
@@ -489,24 +491,24 @@ def verify_task(request, pk):
 
 @login_required
 def user_profile(request):
-    # Common form handling for both roles
+    # Initialize forms outside of POST check
+    profile_form = UserProfileForm(instance=request.user)
+    password_form = PasswordChangeForm(request.user)
+    
     if request.method == 'POST':
         if 'profile_form' in request.POST:
             profile_form = UserProfileForm(request.POST, instance=request.user)
             if profile_form.is_valid():
                 profile_form.save()
                 messages.success(request, 'Profile updated successfully!')
-                return redirect('user_profile')  # Changed from 'profile' to 'user_profile'
+                return redirect('user_profile')
         elif 'password_form' in request.POST:
             password_form = PasswordChangeForm(request.user, request.POST)
             if password_form.is_valid():
                 user = password_form.save()
-                update_session_auth_hash(request, user)  # Maintain session
+                update_session_auth_hash(request, user)
                 messages.success(request, 'Password updated successfully!')
-                return redirect('user_profile')  # Changed from 'profile' to 'user_profile'
-    else:
-        profile_form = UserProfileForm(instance=request.user)
-        password_form = PasswordChangeForm(request.user)
+                return redirect('user_profile')
 
     # Calculate progress for level
     completed_count = request.user.assigned_tasks.filter(status='verified').count()

@@ -180,6 +180,22 @@
         font-weight: 700;
     }
 
+    .completed-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .completed-verified {
+        font-weight: 600;
+        color: var(--success);
+    }
+
+    .completed-total {
+        font-size: 0.8rem;
+        color: var(--secondary);
+    }
+
     @media (max-width: 768px) {
         .leaderboard-container {
             padding: 1rem;
@@ -242,7 +258,7 @@
                             </div>
                         </td>
                         <td class="points-cell">{{ user.points }}</td>
-                        <td>{{ user.completed_tasks }}</td>
+                        <td class="points-cell">{{ user.completed_tasks }}</td>
                         <td>
                             <div class="rating-stars">
                                 {% for i in "12345" %}
